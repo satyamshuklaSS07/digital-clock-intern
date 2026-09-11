@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chrono</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #050a14;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Starfield */
+  #stars {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle ease-in-out infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.9; }
+  }
+
+  /* Scene wrapper */
+  .scene {
+    position: relative;
+    width: min(560px, 90vw);
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+
+  .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(94, 234, 212, 0.18);
+  }
+
+  .ring--outer {
+    inset: 0;
+    animation: spin 40s linear infinite;
+    border-style: dashed;
+    border-color: rgba(94, 234, 212, 0.15);
+  }
+
+  .ring--mid {
+    inset: 8%;
+    animation: spin 26s linear infinite reverse;
+  }
+
+  .ring--inner {
+    inset: 16%;
+    border-color: rgba(56, 189, 248, 0.2);
+    animation: spin 18s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .tick {
+    position: absolute;
+    width: 2px;
+    height: 10px;
+    background: rgba(94, 234, 212, 0.5);
+    left: 50%;
+    top: 0;
+    transform-origin: 50% 280px;
+  }
+
+  .satellite {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 10px 3px rgba(56, 189, 248, 0.8);
+    top: -4px;
+    left: 50%;
+    margin-left: -4px;
+  }
+
+  .orbit-satellite {
+    position: absolute;
+    inset: 8%;
+    animation: spin 26s linear infinite reverse;
+  }
+
+  /* Console panel */
+  .console {
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(160deg, rgba(15, 23, 42, 0.9), rgba(8, 13, 26, 0.95));
+    border: 1px solid rgba(94, 234, 212, 0.25);
+    border-radius: 20px;
+    padding: 38px 46px;
+    text-align: center;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.02) inset,
+      0 0 60px rgba(56, 189, 248, 0.12),
+      0 25px 60px rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+  }
+
+  .console::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #38bdf8, transparent);
+    opacity: 0.6;
+    animation: scan 3s ease-in-out infinite;
+  }
+
+  @keyframes scan {
+    0%, 100% { transform: translateY(0); opacity: 0; }
+    50% { transform: translateY(140px); opacity: 0.7; }
+  }
+
+  .label-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 8px 2px rgba(74, 222, 128, 0.8);
+    animation: dotpulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes dotpulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .label-row span.text {
+    color: #7dd3c0;
+    font-size: 0.7rem;
+    letter-spacing: 5px;
+    font-family: Arial, sans-serif;
+  }
+
+  #clock {
+    font-size: clamp(2.4rem, 8vw, 4.6rem);
+    font-weight: bold;
+    letter-spacing: 4px;
+    color: #eafff9;
+    text-shadow:
+      0 0 8px rgba(94, 234, 212, 0.9),
+      0 0 30px rgba(56, 189, 248, 0.5);
+    font-variant-numeric: tabular-nums;
+  }
+
+  #clock .colon {
+    color: #38bdf8;
+    animation: blink 1s steps(1) infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0.15; }
+  }
+
+  #date {
+    margin-top: 16px;
+    color: #94a3b8;
+    font-family: Arial, sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 3px;
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+    font-family: Arial, sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: #5b6b82;
+  }
+
+  .meta-row span.hi { color: #5eead4; }
+
+  @media (max-width: 480px) {
+    .console { padding: 26px 22px; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="stars"></div>
+
+  <div class="scene">
+    <div class="ring ring--outer"></div>
+    <div class="ring ring--mid"></div>
+    <div class="orbit-satellite"><div class="satellite"></div></div>
+    <div class="ring ring--inner"></div>
+
+    <div class="console">
+      <div class="label-row">
+        <div class="status-dot"></div>
+        <span class="text">LIVE · SYSTEM CLOCK</span>
+      </div>
+      <div id="clock"></div>
+      <div id="date"></div>
+      <div class="meta-row">
+        <span>TZ <span class="hi" id="tz"></span></span>
+        <span>UPTIME <span class="hi" id="uptime">00:00:00</span></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function addLeadingZero(n) { return n < 10 ? '0' + n : n; }
+
+    function createStars() {
+      const container = document.getElementById('stars');
+      for (let i = 0; i < 90; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        const size = Math.random() * 2 + 1;
+        s.style.width = size + 'px';
+        s.style.height = size + 'px';
+        s.style.left = Math.random() * 100 + 'vw';
+        s.style.top = Math.random() * 100 + 'vh';
+        s.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        s.style.animationDelay = Math.random() * 3 + 's';
+        container.appendChild(s);
+      }
+    }
+
+    const startTime = Date.now();
+
+    function tick() {
+      const now = new Date();
+      const h = addLeadingZero(now.getHours());
+      const m = addLeadingZero(now.getMinutes());
+      const s = addLeadingZero(now.getSeconds());
+
+      document.getElementById('clock').innerHTML =
+        `${h}<span class="colon">:</span>${m}<span class="colon">:</span>${s}`;
+
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('date').textContent =
+        now.toLocaleDateString(undefined, options).toUpperCase();
+
+      document.getElementById('tz').textContent =
+        Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const eh = addLeadingZero(Math.floor(elapsed / 3600));
+      const em = addLeadingZero(Math.floor((elapsed % 3600) / 60));
+      const es = addLeadingZero(elapsed % 60);
+      document.getElementById('uptime').textContent = `${eh}:${em}:${es}`;
+    }
+
+    createStars();
+    tick();
+    setInterval(tick, 1000);
+  </script>
+
+</body>
+</html>
